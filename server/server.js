@@ -22,6 +22,12 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 
 app.get("/api/health", (req, res) => res.json({ status: "OK", env: process.env.NODE_ENV }));
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "MERN Ecommerce API is running"
+  });
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
