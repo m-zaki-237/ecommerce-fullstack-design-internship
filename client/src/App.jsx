@@ -6,6 +6,7 @@ import ProductDetailPage from "./pages/ProductDetail";
 import CartPage from "./pages/Cart";
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
+import AdminLayout from "./pages/Admin";
 
 const App = () => (
   <BrowserRouter>
@@ -17,6 +18,7 @@ const App = () => (
         <Route path="/cart" element={<CartPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/admin/*" element={<AdminLayout />} />
       </Route>
     </Routes>
   </BrowserRouter>

@@ -6,6 +6,7 @@ import useAuthStore from "../../store/authStore";
 import Breadcrumb from "../../components/ui/Breadcrumb";
 import StarRating from "../../components/ui/StarRating";
 import DiscountBanner from "../../components/common/DiscountBanner";
+import { productAPI } from "../../api/productAPI";
 
 const TABS = ["Description", "Reviews", "Shipping", "About seller"];
 
@@ -15,10 +16,18 @@ const ProductDetailPage = () => {
   const { product, loading, fetchProduct } = useProductStore();
   const { addToCart, loading: cartLoading } = useCartStore();
   const { user } = useAuthStore();
+
   const [selectedImg, setSelectedImg] = useState(0);
   const [activeTab, setActiveTab] = useState("Description");
   const [qty, setQty] = useState(1);
   const [addedMsg, setAddedMsg] = useState("");
+
+  // Review form state
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewMsg, setReviewMsg] = useState("");
+  const [hoveredStar, setHoveredStar] = useState(0);
 
   useEffect(() => {
     fetchProduct(id);
@@ -29,10 +38,29 @@ const ProductDetailPage = () => {
     if (!user) { navigate("/login"); return; }
     try {
       await addToCart(product._id, qty);
-      setAddedMsg("Added to cart!");
+      setAddedMsg("✅ Added to cart!");
       setTimeout(() => setAddedMsg(""), 2000);
     } catch (err) {
-      setAddedMsg(err.message || "Failed to add");
+      setAddedMsg("❌ " + (err.message || "Failed to add"));
+    }
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!user) { navigate("/login"); return; }
+    if (reviewRating === 0) { setReviewMsg("❌ Please select a rating"); return; }
+    setReviewLoading(true);
+    try {
+      await productAPI.createReview(id, { rating: reviewRating, comment: reviewComment });
+      setReviewMsg("✅ Review submitted!");
+      setReviewRating(0);
+      setReviewComment("");
+      fetchProduct(id);
+    } catch (err) {
+      setReviewMsg("❌ " + (err.response?.data?.message || "Failed to submit review"));
+    } finally {
+      setReviewLoading(false);
+      setTimeout(() => setReviewMsg(""), 3000);
     }
   };
 
@@ -82,13 +110,13 @@ const ProductDetailPage = () => {
               : <span className="text-red-500 text-sm font-medium">✗ Out of stock</span>}
           </div>
           <h1 className="text-xl font-bold text-gray-800 mb-3 leading-snug">{product.name}</h1>
+
           <div className="flex items-center gap-4 mb-4 flex-wrap">
             <StarRating score={product.rating * 2} />
             <span className="text-gray-300">|</span>
             <span className="text-gray-500 text-sm">💬 {product.numReviews} reviews</span>
           </div>
 
-          {/* Price tiers */}
           {product.priceTiers?.length > 0 ? (
             <div className="flex gap-2 mb-5 flex-wrap">
               {product.priceTiers.map((tier, i) => (
@@ -106,7 +134,6 @@ const ProductDetailPage = () => {
             </div>
           )}
 
-          {/* Specs */}
           <table className="w-full text-sm mb-5">
             <tbody>
               {product.specs?.map(({ label, value }) => (
@@ -122,18 +149,20 @@ const ProductDetailPage = () => {
             </tbody>
           </table>
 
-          {/* Qty + Add to Cart */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
               <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2 hover:bg-gray-50 text-gray-600">−</button>
               <span className="px-4 py-2 text-sm font-medium border-x border-gray-200">{qty}</span>
               <button onClick={() => setQty(Math.min(product.countInStock, qty + 1))} className="px-3 py-2 hover:bg-gray-50 text-gray-600">+</button>
             </div>
-            <button onClick={handleAddToCart} disabled={cartLoading || product.countInStock === 0}
-              className="btn-primary px-8 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+              onClick={handleAddToCart}
+              disabled={cartLoading || product.countInStock === 0}
+              className="btn-primary px-8 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {cartLoading ? "Adding..." : "Add to Cart"}
             </button>
-            {addedMsg && <span className={`text-sm font-medium ${addedMsg.includes("Failed") ? "text-red-500" : "text-green-500"}`}>{addedMsg}</span>}
+            {addedMsg && <span className={`text-sm font-medium ${addedMsg.includes("❌") ? "text-red-500" : "text-green-500"}`}>{addedMsg}</span>}
           </div>
         </div>
 
@@ -169,10 +198,15 @@ const ProductDetailPage = () => {
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-6 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === tab ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
               {tab}
+              {tab === "Reviews" && product.numReviews > 0 && (
+                <span className="ml-1.5 bg-gray-100 text-gray-500 text-xs px-1.5 py-0.5 rounded-full">{product.numReviews}</span>
+              )}
             </button>
           ))}
         </div>
+
         <div className="p-6">
+          {/* Description tab */}
           {activeTab === "Description" && (
             <div>
               <p className="text-sm text-gray-600 mb-4 leading-relaxed">{product.description}</p>
@@ -187,27 +221,131 @@ const ProductDetailPage = () => {
               )}
             </div>
           )}
+
+          {/* Reviews tab */}
           {activeTab === "Reviews" && (
-            <div>
-              {product.reviews?.length === 0
-                ? <p className="text-gray-400 text-center py-8">No reviews yet. Be the first!</p>
-                : product.reviews?.map((r) => (
-                  <div key={r._id} className="border-b border-gray-100 pb-4 mb-4 last:border-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm text-gray-800">{r.name}</span>
-                      <StarRating score={r.rating * 2} />
-                    </div>
-                    <p className="text-sm text-gray-600">{r.comment}</p>
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Existing reviews */}
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-800 mb-4">
+                  {product.reviews?.length === 0 ? "No reviews yet" : `${product.numReviews} Review${product.numReviews !== 1 ? "s" : ""}`}
+                </h3>
+                {product.reviews?.length === 0 ? (
+                  <p className="text-gray-400 text-sm">Be the first to review this product!!</p>
+                ) : (
+                  <div className="space-y-4">
+                    {product.reviews.map((r) => (
+                      <div key={r._id} className="border-b border-gray-100 pb-4 last:border-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">
+                            {r.name?.[0]}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm text-gray-800">{r.name}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-yellow-400 text-sm">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                              <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 ml-11">{r.comment}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+              </div>
+
+              {/* Write a review */}
+              <div className="md:w-72 shrink-0">
+                <div className="bg-gray-50 rounded-xl p-5">
+                  <h3 className="font-semibold text-gray-800 mb-4">Write a Review</h3>
+                  {!user ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500 mb-3">You need to be logged in to write a review</p>
+                      <button onClick={() => navigate("/login")} className="btn-primary text-sm px-6 py-2">Login to review</button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmitReview} className="space-y-4">
+                      {/* Star rating picker */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Your Rating *</label>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onMouseEnter={() => setHoveredStar(star)}
+                              onMouseLeave={() => setHoveredStar(0)}
+                              onClick={() => setReviewRating(star)}
+                              className="text-2xl transition-transform hover:scale-110 focus:outline-none"
+                            >
+                              <span className={star <= (hoveredStar || reviewRating) ? "text-yellow-400" : "text-gray-300"}>
+                                ★
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                        {reviewRating > 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {["", "Poor", "Fair", "Good", "Very Good", "Excellent"][reviewRating]}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Your Review *</label>
+                        <textarea
+                          value={reviewComment}
+                          onChange={(e) => setReviewComment(e.target.value)}
+                          required
+                          rows={4}
+                          placeholder="Share your experience with this product..."
+                          className="input-field resize-none"
+                        />
+                      </div>
+
+                      {reviewMsg && (
+                        <p className={`text-xs font-medium ${reviewMsg.includes("❌") ? "text-red-500" : "text-green-600"}`}>
+                          {reviewMsg}
+                        </p>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={reviewLoading}
+                        className="btn-primary w-full py-2.5 disabled:opacity-50"
+                      >
+                        {reviewLoading ? "Submitting..." : "Submit Review"}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
             </div>
           )}
-          {(activeTab === "Shipping" || activeTab === "About seller") && (
-            <p className="text-sm text-gray-500 text-center py-8">
-              {activeTab === "Shipping"
-                ? `${product.shipping} • Standard delivery 3-7 business days`
-                : product.supplier?.name ? `Sold by ${product.supplier.name} from ${product.supplier.country}` : "No supplier info available"}
-            </p>
+
+          {activeTab === "Shipping" && (
+            <div className="space-y-3 text-sm text-gray-600">
+              <p className="flex items-center gap-2"><span className="text-green-500 font-bold">✓</span> {product.shipping}</p>
+              <p className="flex items-center gap-2"><span className="text-green-500 font-bold">✓</span> Standard delivery 3-7 business days</p>
+              <p className="flex items-center gap-2"><span className="text-green-500 font-bold">✓</span> Express delivery available at checkout</p>
+              <p className="flex items-center gap-2"><span className="text-green-500 font-bold">✓</span> Free returns within 30 days</p>
+            </div>
+          )}
+
+          {activeTab === "About seller" && (
+            <div className="text-sm text-gray-600 space-y-2">
+              {product.supplier?.name ? (
+                <>
+                  <p><span className="font-medium">Seller:</span> {product.supplier.name}</p>
+                  <p><span className="font-medium">Country:</span> {product.supplier.flag} {product.supplier.country}</p>
+                  <p><span className="font-medium">Verified:</span> {product.supplier.verified ? "✅ Yes" : "❌ No"}</p>
+                  <p><span className="font-medium">Shipping:</span> Worldwide</p>
+                </>
+              ) : (
+                <p className="text-gray-400">No seller information available.</p>
+              )}
+            </div>
           )}
         </div>
       </div>
