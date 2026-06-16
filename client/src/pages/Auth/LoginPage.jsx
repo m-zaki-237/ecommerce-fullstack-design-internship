@@ -45,11 +45,6 @@ const LoginPage = () => {
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-          <p className="font-medium mb-1">Demo accounts:</p>
-          <p>Admin: admin@shop.com / admin123</p>
-          <p>User: zaki@example.com / user123</p>
-        </div>
         <p className="text-center text-sm text-gray-500 mt-4">
           Don't have an account?{" "}
           <Link to="/register" className="text-blue-600 font-medium hover:underline">Register</Link>
