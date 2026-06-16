@@ -45,7 +45,7 @@ const CartPage = () => {
     setCheckoutLoading(true);
     setTimeout(() => {
       setCheckoutLoading(false);
-      alert("Order placed successfully! (Integrate payment gateway here)");
+      alert("Order placed successfully!");
     }, 1000);
   };
 
