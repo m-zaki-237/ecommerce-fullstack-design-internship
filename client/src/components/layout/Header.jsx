@@ -75,7 +75,7 @@ const Header = () => {
               <span className="text-xs text-gray-600 font-medium">Hi, {user.name?.split(" ")[0]}</span>
               {user.role === "admin" && (
                 <Link to="/admin" className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded font-medium hover:bg-purple-200 transition-colors">
-                  Admin
+                  Admin Panel
                 </Link>
               )}
               <Link to="/cart" className="text-xs text-gray-500 hover:text-blue-600">Orders</Link>
