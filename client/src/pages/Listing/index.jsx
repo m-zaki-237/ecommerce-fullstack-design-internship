@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import useProductStore from "../../store/productStore";
 import useFilters from "../../hooks/useFilters";
 import Breadcrumb from "../../components/ui/Breadcrumb";
@@ -9,56 +9,54 @@ import StarRating from "../../components/ui/StarRating";
 
 const BREADCRUMB = ["Home", "Products", "All Products"];
 
-const ProductCard = ({ product, viewMode }) => {
-  const card = (
-    <Link
-      to={`/product/${product._id}`}
-      className={`card hover:shadow-md hover:border-blue-200 transition-all block group ${
-        viewMode === "list" ? "flex gap-4 p-4" : "overflow-hidden"
-      }`}
-    >
-      <div className={viewMode === "list" ? "w-36 h-36 shrink-0" : "relative"}>
-        <img
-          src={product.images?.[0]}
-          alt={product.name}
-          className={`object-cover rounded-lg ${viewMode === "list" ? "w-full h-full" : "w-full aspect-square"}`}
-        />
-        {product.discount > 0 && (
-          <span className="absolute top-2 left-2 badge-discount">-{product.discount}%</span>
+const ProductCard = ({ product, viewMode }) => (
+  <Link
+    to={`/product/${product._id}`}
+    className={`card hover:shadow-md hover:border-blue-200 transition-all block group ${
+      viewMode === "list" ? "flex gap-4 p-4" : "overflow-hidden"
+    }`}
+  >
+    <div className={viewMode === "list" ? "w-36 h-36 shrink-0 relative" : "relative"}>
+      <img
+        src={product.images?.[0]}
+        alt={product.name}
+        className={`object-cover rounded-lg ${viewMode === "list" ? "w-full h-full" : "w-full aspect-square"}`}
+      />
+      {product.discount > 0 && (
+        <span className="absolute top-2 left-2 badge-discount">-{product.discount}%</span>
+      )}
+    </div>
+    <div className={viewMode === "list" ? "flex-1 min-w-0" : "p-3"}>
+      {viewMode === "list" && (
+        <h3 className="font-semibold text-gray-800 text-base mb-2">{product.name}</h3>
+      )}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className={`font-bold text-red-500 ${viewMode === "list" ? "text-lg" : "text-base"}`}>
+          ${product.price.toFixed(2)}
+        </span>
+        {product.originalPrice && (
+          <span className="text-gray-400 text-xs line-through">${product.originalPrice.toFixed(2)}</span>
         )}
       </div>
-      <div className={viewMode === "list" ? "flex-1 min-w-0" : "p-3"}>
-        {viewMode === "list" && (
-          <h3 className="font-semibold text-gray-800 text-base mb-2">{product.name}</h3>
-        )}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={`font-bold text-red-500 ${viewMode === "list" ? "text-lg" : "text-base"}`}>
-            ${product.price.toFixed(2)}
-          </span>
-          {product.originalPrice && (
-            <span className="text-gray-400 text-xs line-through">${product.originalPrice.toFixed(2)}</span>
-          )}
-        </div>
-        <div className="my-1">
-          <StarRating score={product.rating * 2} />
-        </div>
-        <div className="flex gap-2 text-xs text-gray-500 flex-wrap">
-          <span>{product.numReviews} reviews</span>
-          <span className="text-green-500 font-medium">{product.shipping}</span>
-        </div>
-        {viewMode === "list" && (
-          <p className="text-sm text-gray-500 mt-2 line-clamp-2">{product.description}</p>
-        )}
-        {viewMode !== "list" && (
-          <p className="text-xs text-gray-600 mt-1 line-clamp-2">{product.name}</p>
-        )}
+      <div className="my-1">
+        <StarRating score={product.rating * 2} />
       </div>
-    </Link>
-  );
-  return card;
-};
+      <div className="flex gap-2 text-xs text-gray-500 flex-wrap">
+        <span>{product.numReviews} reviews</span>
+        <span className="text-green-500 font-medium">{product.shipping}</span>
+      </div>
+      {viewMode === "list" && (
+        <p className="text-sm text-gray-500 mt-2 line-clamp-2">{product.description}</p>
+      )}
+      {viewMode !== "list" && (
+        <p className="text-xs text-gray-600 mt-1 line-clamp-2">{product.name}</p>
+      )}
+    </div>
+  </Link>
+);
 
 const ListingPage = () => {
+  const [searchParams] = useSearchParams();
   const { products, loading, pagination, fetchProducts } = useProductStore();
   const {
     selectedBrands, selectedFeatures, condition, setCondition,
@@ -68,16 +66,23 @@ const ListingPage = () => {
     toggleBrand, toggleFeature, clearFilters, activeFilters, removeFilter,
   } = useFilters();
 
+  const urlCategory = searchParams.get("category");
+  const urlSearch = searchParams.get("search");
+
   useEffect(() => {
     const params = { page, sort: sortBy };
     if (priceMin) params.minPrice = priceMin;
     if (priceMax) params.maxPrice = priceMax;
+    if (selectedBrands.length > 0) params.brand = selectedBrands.join(",");
+    if (urlCategory) params.category = urlCategory;
+    if (urlSearch) params.search = urlSearch;
+
     fetchProducts(params);
-  }, [page, sortBy, priceMin, priceMax]);
+  }, [page, sortBy, priceMin, priceMax, selectedBrands, urlCategory, urlSearch]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
-      <Breadcrumb items={BREADCRUMB} />
+      <Breadcrumb items={urlCategory ? ["Home", "Products", urlCategory] : BREADCRUMB} />
       <div className="flex gap-6">
         <FilterSidebar
           selectedBrands={selectedBrands} toggleBrand={toggleBrand}
@@ -103,6 +108,7 @@ const ListingPage = () => {
           <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
             <p className="text-sm text-gray-600">
               <span className="font-semibold text-gray-800">{pagination.total}</span> products found
+              {urlSearch && <span> for "<span className="font-medium">{urlSearch}</span>"</span>}
             </p>
             <div className="flex items-center gap-3 flex-wrap">
               <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
@@ -142,6 +148,9 @@ const ListingPage = () => {
             <div className="text-center py-20 text-gray-400">
               <p className="text-4xl mb-3">🔍</p>
               <p className="font-medium text-gray-600">No products found</p>
+              {activeFilters.length > 0 && (
+                <button onClick={clearFilters} className="link-blue mt-2">Clear filters and try again</button>
+              )}
             </div>
           ) : (
             <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 gap-4" : "space-y-3"}>
@@ -151,7 +160,7 @@ const ListingPage = () => {
             </div>
           )}
 
-          <Pagination currentPage={pagination.page} totalPages={pagination.pages} onPageChange={setPage} />
+          <Pagination currentPage={pagination.page} totalPages={pagination.pages || 1} onPageChange={setPage} />
         </div>
       </div>
     </div>

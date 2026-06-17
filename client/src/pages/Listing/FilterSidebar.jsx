@@ -1,5 +1,4 @@
-const BRANDS = ["Samsung", "Apple", "Huawei", "Pocco", "Lenovo"];
-const FEATURES = ["Metallic", "Plastic cover", "8GB Ram", "Super power", "Large Memory"];
+const BRANDS = ["Apple", "Samsung", "Sony", "Canon", "GoPro", "Razer"];
 const RATINGS = [5, 4, 3, 2];
 
 const FilterSidebar = ({
@@ -18,20 +17,13 @@ const FilterSidebar = ({
           Category <span className="text-gray-400 font-normal text-xs">▾</span>
         </h3>
         <ul className="space-y-1.5">
-          {["Mobile accessory", "Electronics", "Smartphones", "Modern tech"].map((cat) => (
+          {["Electronics", "Cameras", "Computers", "Clothing", "Accessories", "Home & Outdoor", "Sports"].map((cat) => (
             <li key={cat}>
-              <button
-                className={`text-sm transition-colors ${
-                  cat === "Mobile accessory"
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-500 hover:text-blue-600"
-                }`}
-              >
+              <button className="text-sm text-gray-500 hover:text-blue-600 transition-colors">
                 {cat}
               </button>
             </li>
           ))}
-          <li><button className="link-blue text-xs">See all</button></li>
         </ul>
       </div>
 
@@ -57,33 +49,6 @@ const FilterSidebar = ({
               </label>
             </li>
           ))}
-          <li><button className="link-blue text-xs">See all</button></li>
-        </ul>
-      </div>
-
-      <div className="border-t border-gray-100" />
-
-      {/* Features */}
-      <div>
-        <h3 className="font-semibold text-gray-800 text-sm mb-2 flex justify-between items-center">
-          Features <span className="text-gray-400 font-normal text-xs">▾</span>
-        </h3>
-        <ul className="space-y-2">
-          {FEATURES.map((feat) => (
-            <li key={feat} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id={`feat-${feat}`}
-                checked={selectedFeatures.includes(feat)}
-                onChange={() => toggleFeature(feat)}
-                className="rounded accent-blue-600"
-              />
-              <label htmlFor={`feat-${feat}`} className="text-sm text-gray-600 cursor-pointer">
-                {feat}
-              </label>
-            </li>
-          ))}
-          <li><button className="link-blue text-xs">See all</button></li>
         </ul>
       </div>
 
@@ -99,18 +64,17 @@ const FilterSidebar = ({
             value={priceMin}
             onChange={(e) => setPriceMin(e.target.value)}
             placeholder="Min"
+            type="number"
             className="w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-blue-400"
           />
           <input
             value={priceMax}
             onChange={(e) => setPriceMax(e.target.value)}
             placeholder="Max"
+            type="number"
             className="w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-blue-400"
           />
         </div>
-        <button className="w-full border border-blue-500 text-blue-500 rounded py-1 text-xs hover:bg-blue-50 transition-colors">
-          Apply
-        </button>
       </div>
 
       <div className="border-t border-gray-100" />
@@ -120,7 +84,7 @@ const FilterSidebar = ({
         <h3 className="font-semibold text-gray-800 text-sm mb-2 flex justify-between items-center">
           Condition <span className="text-gray-400 font-normal text-xs">▾</span>
         </h3>
-        {["Any", "Refurbished", "Brand new", "Old items"].map((c) => (
+        {["Any", "Brand new"].map((c) => (
           <label key={c} className="flex items-center gap-2 mb-2 cursor-pointer">
             <input
               type="radio"
@@ -151,7 +115,7 @@ const FilterSidebar = ({
         ))}
       </div>
 
-      {(selectedBrands.length > 0 || selectedFeatures.length > 0) && (
+      {selectedBrands.length > 0 && (
         <button
           onClick={clearFilters}
           className="w-full text-xs text-red-500 border border-red-200 rounded py-1.5 hover:bg-red-50 transition-colors"
