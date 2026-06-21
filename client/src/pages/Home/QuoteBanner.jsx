@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const QuoteBanner = () => {
   const [form, setForm] = useState({ item: "", details: "", quantity: "", unit: "Pcs" });
@@ -9,6 +10,7 @@ const QuoteBanner = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setForm({ item: "", details: "", quantity: "", unit: "Pcs" });
+    toast.success('Inquiry Sent!')
   };
 
   return (
@@ -32,6 +34,7 @@ const QuoteBanner = () => {
             name="item"
             value={form.item}
             onChange={handleChange}
+            required
             placeholder="What item you need?"
             className="input-field"
           />
@@ -48,6 +51,7 @@ const QuoteBanner = () => {
               name="quantity"
               value={form.quantity}
               onChange={handleChange}
+              required
               placeholder="Quantity"
               className="input-field flex-1"
             />

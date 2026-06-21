@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import useCartStore from "../../store/cartStore";
+import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const LoginPage = () => {
     try {
       await login(form.email, form.password);
       await fetchCart();
+      toast.success("Logged In")
       navigate("/");
     } catch {}
   };

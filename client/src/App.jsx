@@ -7,6 +7,7 @@ import CartPage from "./pages/Cart";
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import AdminLayout from "./pages/Admin";
+import { Bounce, ToastContainer, toast } from "react-toastify";
 
 const App = () => (
   <BrowserRouter>
@@ -21,6 +22,18 @@ const App = () => (
         <Route path="/admin/*" element={<AdminLayout />} />
       </Route>
     </Routes>
+    <ToastContainer
+    position="top-right"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick={false}
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="dark"
+      transition={Bounce}/>
   </BrowserRouter>
 );
 

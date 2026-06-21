@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import useCartStore from "../../store/cartStore";
 import useAuthStore from "../../store/authStore";
 import DiscountBanner from "../../components/common/DiscountBanner";
-
+import { toast } from 'react-toastify'
 const TRUST_BADGES = [
   { icon: "🔒", label: "Secure payment", sub: "100% secured transactions" },
   { icon: "💬", label: "Customer support", sub: "24/7 dedicated support" },
@@ -33,7 +33,8 @@ const CartPage = () => {
   const handleApplyCoupon = async () => {
     try {
       const saved = await applyCoupon(couponInput);
-      setCouponMsg(`Coupon applied! You saved $${saved.toFixed(2)}`);
+      setCouponMsg(`Coupon applied! You saved $${saved.toFixed(2)}`)
+      toast.success("Coupon Applied")
     } catch (err) {
       setCouponMsg(`${err.message}`);
     }
@@ -45,7 +46,7 @@ const CartPage = () => {
     setCheckoutLoading(true);
     setTimeout(() => {
       setCheckoutLoading(false);
-      alert("Order placed successfully!");
+      toast.success("Order placed successfully!");
     }, 1000);
   };
 
@@ -117,7 +118,7 @@ const CartPage = () => {
               ← Back to shop
             </Link>
             {items.length > 0 && (
-              <button onClick={clearCart} className="text-sm text-red-500 border border-red-200 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors">
+              <button onClick={()=>{clearCart(), toast.success('Items Removed')}} className="text-sm text-red-500 border border-red-200 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors">
                 Remove all
               </button>
             )}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useCartStore from "../../store/cartStore";
 import useAuthStore from "../../store/authStore";
+import { toast } from "react-toastify";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,7 +16,7 @@ const Header = () => {
     if (searchQuery.trim()) navigate(`/listing?search=${encodeURIComponent(searchQuery)}`);
   };
 
-  const handleLogout = () => { logout(); navigate("/"); };
+  const handleLogout = () => { logout(); navigate("/"); toast.success('Logged out!')};
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">

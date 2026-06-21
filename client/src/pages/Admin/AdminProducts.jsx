@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { productAPI } from "../../api/productAPI";
 import ProductFormModal from "./ProductFormModal";
+import { toast } from "react-toastify";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -38,10 +39,10 @@ const AdminProducts = () => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
       await productAPI.deleteProduct(id);
-      setMsg("✅ Product deleted");
+      toast.success("Product deleted");
       fetchProducts();
     } catch {
-      setMsg("❌ Failed to delete");
+      toast.error("Failed to delete");
     }
     setTimeout(() => setMsg(""), 3000);
   };
@@ -50,15 +51,15 @@ const AdminProducts = () => {
     try {
       if (id) {
         await productAPI.updateProduct(id, formData);
-        setMsg("✅ Product updated");
+        toast.success("Product updated");
       } else {
         await productAPI.createProduct(formData);
-        setMsg("✅ Product created");
+        toast.success("Product created");
       }
       setModalOpen(false);
       fetchProducts();
     } catch (err) {
-      setMsg("❌ " + (err.response?.data?.message || "Failed to save"));
+      toast.error((err.response?.data?.message || "Failed to save"));
     }
     setTimeout(() => setMsg(""), 3000);
   };

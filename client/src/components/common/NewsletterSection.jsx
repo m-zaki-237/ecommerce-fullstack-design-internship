@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const NewsletterSection = () => {
   const [email, setEmail] = useState("");
@@ -6,6 +7,7 @@ const NewsletterSection = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setEmail("");
+    toast.success("Subscribed to newsletter")
   };
 
   return (

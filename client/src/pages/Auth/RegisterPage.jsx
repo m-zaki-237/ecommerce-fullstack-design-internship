@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
+import { toast } from "react-toastify";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const RegisterPage = () => {
     if (form.password.length < 6) { setFormError("Password must be at least 6 characters"); return; }
     try {
       await register(form.name, form.email, form.password);
+      toast.success("User Resgistered")
       navigate("/");
     } catch {}
   };
