@@ -29,6 +29,12 @@ const ProductDetailPage = () => {
   const [reviewMsg, setReviewMsg] = useState("");
   const [hoveredStar, setHoveredStar] = useState(0);
 
+  // Modal state
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [sellerOpen, setSellerOpen] = useState(false);
+  const [inquiryMsg, setInquiryMsg] = useState("");
+  const [inquirySent, setInquirySent] = useState(false);
+
   useEffect(() => {
     fetchProduct(id);
     setSelectedImg(0);
@@ -62,6 +68,12 @@ const ProductDetailPage = () => {
       setReviewLoading(false);
       setTimeout(() => setReviewMsg(""), 3000);
     }
+  };
+
+  const closeInquiry = () => {
+    setInquiryOpen(false);
+    setInquirySent(false);
+    setInquiryMsg("");
   };
 
   if (loading || !product) {
@@ -184,8 +196,12 @@ const ProductDetailPage = () => {
                 {product.supplier.verified && <p className="text-green-600">✓ Verified Seller</p>}
                 <p>🌐 Worldwide shipping</p>
               </div>
-              <button className="btn-primary w-full py-2.5 text-sm mb-2">Send inquiry</button>
-              <button className="link-blue w-full text-center block">Seller's profile</button>
+              <button onClick={() => setInquiryOpen(true)} className="btn-primary w-full py-2.5 text-sm mb-2">
+                Send inquiry
+              </button>
+              <button onClick={() => setSellerOpen(true)} className="link-blue w-full text-center block">
+                Seller's profile
+              </button>
             </div>
           </div>
         )}
@@ -206,7 +222,6 @@ const ProductDetailPage = () => {
         </div>
 
         <div className="p-6">
-          {/* Description tab */}
           {activeTab === "Description" && (
             <div>
               <p className="text-sm text-gray-600 mb-4 leading-relaxed">{product.description}</p>
@@ -222,16 +237,14 @@ const ProductDetailPage = () => {
             </div>
           )}
 
-          {/* Reviews tab */}
           {activeTab === "Reviews" && (
             <div className="flex flex-col md:flex-row gap-8">
-              {/* Existing reviews */}
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-800 mb-4">
                   {product.reviews?.length === 0 ? "No reviews yet" : `${product.numReviews} Review${product.numReviews !== 1 ? "s" : ""}`}
                 </h3>
                 {product.reviews?.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Be the first to review this product!!</p>
+                  <p className="text-gray-400 text-sm">Be the first to review this product!</p>
                 ) : (
                   <div className="space-y-4">
                     {product.reviews.map((r) => (
@@ -255,7 +268,6 @@ const ProductDetailPage = () => {
                 )}
               </div>
 
-              {/* Write a review */}
               <div className="md:w-72 shrink-0">
                 <div className="bg-gray-50 rounded-xl p-5">
                   <h3 className="font-semibold text-gray-800 mb-4">Write a Review</h3>
@@ -266,7 +278,6 @@ const ProductDetailPage = () => {
                     </div>
                   ) : (
                     <form onSubmit={handleSubmitReview} className="space-y-4">
-                      {/* Star rating picker */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Your Rating *</label>
                         <div className="flex gap-1">
@@ -351,6 +362,85 @@ const ProductDetailPage = () => {
       </div>
 
       <DiscountBanner />
+
+      {/* Send Inquiry Modal */}
+      {inquiryOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-800 text-lg">Send Inquiry</h3>
+              <button onClick={closeInquiry} className="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+            </div>
+
+            {inquirySent ? (
+              <div className="text-center py-6">
+                <p className="text-4xl mb-3">✅</p>
+                <p className="text-gray-700 font-medium">Inquiry sent to {product.supplier?.name}!</p>
+                <p className="text-sm text-gray-400 mt-1">They'll get back to you soon.</p>
+              </div>
+            ) : (
+              <form onSubmit={(e) => { e.preventDefault(); setInquirySent(true); }} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your message</label>
+                  <textarea
+                    value={inquiryMsg}
+                    onChange={(e) => setInquiryMsg(e.target.value)}
+                    required
+                    rows={4}
+                    placeholder={`Hi, I'm interested in "${product.name}". Could you share more details about bulk pricing and shipping?`}
+                    className="input-field resize-none"
+                  />
+                </div>
+                <button type="submit" className="btn-primary w-full py-2.5">Send</button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Seller Profile Modal */}
+      {sellerOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-800 text-lg">Seller Profile</h3>
+              <button onClick={() => setSellerOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+            </div>
+
+            <div className="text-center mb-5">
+              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-3">
+                {product.supplier?.name?.[0]}
+              </div>
+              <p className="font-semibold text-gray-800">{product.supplier?.name}</p>
+              <p className="text-sm text-gray-400">{product.supplier?.flag} {product.supplier?.country}</p>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500">Verified</span>
+                <span className={product.supplier?.verified ? "text-green-600 font-medium" : "text-gray-400"}>
+                  {product.supplier?.verified ? "✓ Yes" : "Not verified"}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500">Shipping</span>
+                <span className="text-gray-700 font-medium">Worldwide</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500">Category</span>
+                <span className="text-gray-700 font-medium">{product.category}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => { setSellerOpen(false); setInquiryOpen(true); }}
+              className="btn-primary w-full py-2.5 mt-5"
+            >
+              Contact this seller
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
